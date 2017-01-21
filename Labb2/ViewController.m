@@ -14,7 +14,7 @@
 @property (weak, nonatomic) IBOutlet UIView *gameView;
 @property (weak, nonatomic) IBOutlet UIView *endView;
 @property (weak, nonatomic) IBOutlet UIButton *startButton;
-
+@property (weak, nonatomic) IBOutlet UITextView *questionCountView;
 @property (weak, nonatomic) IBOutlet UITextView *questionView;
 @property (weak, nonatomic) IBOutlet UIButton *button1;
 @property (weak, nonatomic) IBOutlet UIButton *button2;
@@ -31,6 +31,8 @@
 @implementation ViewController
 
 -(void)setWholeQuestion{
+    [self setOriginalButtons];
+    [self showQuestionCount];
     [self.questionView setText:[self.model getQuestion]];
     NSArray *answerArray = [self.model getRandomAnswers];
     [self.button1 setTitle:answerArray[0] forState:UIControlStateNormal];
@@ -58,15 +60,21 @@
 }
 
 - (IBAction)buttonPressed:(UIButton*)sender {
-    if(self.model.answeredquestions == 4){
-        [self gamefinished];
-    }
     if([self.model checkCorrectAnswer:sender.titleLabel.text]){
         [self setGreenButton:sender];
     } else{
         [self setRedButton:sender];
     }
-    
+    if(self.model.answeredquestions == 5){
+        [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(gamefinished) userInfo:Nil repeats:NO];
+        [self pause];
+    }
+    [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(setWholeQuestion) userInfo:Nil repeats:NO];
+    [self pause];
+}
+
+-(void)showQuestionCount{
+   self.questionCountView.text = [NSString stringWithFormat:@"Fråga %d", self.model.answeredquestions+1];
 }
 
 
@@ -95,26 +103,33 @@
 
 -(void)gamefinished{
     [self showEndView];
-    self.resultView.text = [NSString stringWithFormat:@"Rätta svar: %d", self.model.correctAnswers];
-    
+    self.resultView.text = [NSString stringWithFormat:@"Spelet är slut \n\n Rätta svar: %d av 5", self.model.correctAnswers];
 }
 
-
+-(void)setOriginalButtons{
+    self.button1.backgroundColor = [UIColor colorWithRed:3/255.0 green:169/255.0 blue:244/255.0 alpha:1.0];
+        self.button2.backgroundColor = [UIColor colorWithRed:3/255.0 green:169/255.0 blue:244/255.0 alpha:1.0];
+        self.button3.backgroundColor = [UIColor colorWithRed:3/255.0 green:169/255.0 blue:244/255.0 alpha:1.0];
+        self.button4.backgroundColor = [UIColor colorWithRed:3/255.0 green:169/255.0 blue:244/255.0 alpha:1.0];
+    self.button1.enabled = YES;
+    self.button2.enabled = YES;
+    self.button3.enabled = YES;
+    self.button4.enabled = YES;
+}
 
 -(void)setGreenButton:(UIButton*)sender {
     [sender setBackgroundColor:[UIColor greenColor]];
-    [self pause];
-    //sender.backgroundColor = [UIColor colorWithRed:3/255.0 green:169/255.0 blue:244/255.0 alpha:1.0];
 }
 
 -(void)setRedButton:(UIButton*) sender{
     [sender setBackgroundColor:[UIColor redColor]];
-    [self pause];
-    //sender.backgroundColor = [UIColor colorWithRed:3/255.0 green:169/255.0 blue:244/255.0 alpha:1.0];
 }
 
 -(void)pause{
-    [NSTimer scheduledTimerWithTimeInterval:1 target:self selector:@selector(setWholeQuestion) userInfo:Nil repeats:NO];
+    self.button1.enabled = NO;
+    self.button2.enabled = NO;
+    self.button3.enabled = NO;
+    self.button4.enabled = NO;
 }
 
 
@@ -125,6 +140,8 @@
     self.button4.layer.cornerRadius = 10;
     self.restartButton.layer.cornerRadius = 10;
     self.startButton.layer.cornerRadius = 10;
+    [UIView setAnimationsEnabled:NO];
+    
 }
 
 -(void)clearView{
